@@ -7,11 +7,11 @@
 
 let
   pname = "ktalk";
-  version = "3.5.1";
+  version = "3.6.0";
 
   src = fetchurl {
     url = "https://st.ktalk.host/ktalk-app/linux/ktalk${version}x86_64.AppImage";
-    hash = "sha256-BZiJuES8SfGgwI+d51WqCFdnPG6xaTAtPIcIbh6ylY4=";
+    hash = "sha256-naQaV5w/jKIyEUZOliKxJRZ7Q2guTdud+WTm2QTZEzo=";
   };
 
   appimageContents = appimageTools.extractType1 { inherit pname version src; };

@@ -4,13 +4,13 @@ set quiet := true
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
 pull_appimage version:
-  wget -O "ktalk-{{version}}.AppImage" \
-    "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}x86_64.AppImage"
+  wget2 --force-progress -O "ktalk-{{version}}.AppImage" \
+    "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}x86_64.AppImage" >&2
 
   nix hash file "ktalk-{{version}}.AppImage"
 
 get_latest_appimage_version:
-  { wget --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/linux" -O /dev/null 2>&1 || true; } \
+  { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/linux" -O /dev/null 2>&1 || true; } \
     | rg -o 'ktalk([0-9]+\.[0-9]+\.[0-9]+)x86_64\.AppImage' -r '$1' \
     | head -n1
 

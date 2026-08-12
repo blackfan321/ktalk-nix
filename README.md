@@ -29,7 +29,7 @@ nix profile install github:blackfan321/ktalk-nix
       url = "github:blackfan321/ktalk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-  }
+  };
 
   outputs = { nixpkgs, ktalk, ... }: {
     nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {

@@ -14,7 +14,7 @@ let
     hash = "sha256-naQaV5w/jKIyEUZOliKxJRZ7Q2guTdud+WTm2QTZEzo=";
   };
 
-  appimageContents = appimageTools.extractType1 { inherit pname version src; };
+  appimageContents = appimageTools.extract { inherit pname version src; };
   mkDesktop = import ./desktop-helper.nix;
 in appimageTools.wrapType2 {
   inherit pname version src;

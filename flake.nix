@@ -13,7 +13,10 @@
   outputs =
     inputs@{ flake-parts, nixpkgs, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [ ./checks.nix ];
+      imports = [
+        ./checks.nix
+        ./devshell.nix
+      ];
 
       systems = [
         "x86_64-linux"

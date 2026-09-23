@@ -1,0 +1,47 @@
+name: bump_application
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - program_name: ktalk
+            package_file: ktalk.nix
+            recipe: bump_application
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for a new release
+        run: nix develop -c just ${{ matrix.recipe }}
+
+      - name: Read version
+        id: version
+        run: |
+          version="$(sed -n 's/^  version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "bump ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}"
+          title: "bump ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}"
+          body: |
+            Bumps ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}.
+          branch: bump-${{ matrix.program_name }}-${{ steps.version.outputs.version }}
+          add-paths: ${{ matrix.package_file }}
+          delete-branch: true

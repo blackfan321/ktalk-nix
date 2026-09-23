@@ -25,10 +25,5 @@
     in
     {
       checks.prek = prek;
-
-      devShells.default = pkgs.mkShell {
-        inherit (prek) shellHook;
-        buildInputs = prek.enabledPackages;
-      };
     };
 }

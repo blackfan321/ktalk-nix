@@ -33,11 +33,11 @@ nix profile install github:blackfan321/ktalk-nix
 
   outputs = { nixpkgs, ktalk, ... }: {
     nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
-      modules = [{
+      modules = [{ pkgs, ... }: {
         environment.systemPackages = [
-          ktalk.packages.x86_64-linux.ktalk
+          ktalk.packages.${pkgs.stdenv.hostPlatform.system}.ktalk
         ];
-      }];
+      }}];
     };
   };
 }
@@ -49,23 +49,27 @@ nix profile install github:blackfan321/ktalk-nix
 { inputs, pkgs, ... }:
 {
   home.packages = [
-    inputs.ktalk.packages.x86_64-linux.ktalk
+    inputs.ktalk.packages.${pkgs.stdenv.hostPlatform.system}.ktalk
   ];
 }
 ```
 
 ## Platforms
 
-`x86_64-linux`
+- `x86_64-linux`
+- `aarch64-linux`
 
 ## Justfile
 
-Requires [just](https://github.com/casey/just), `wget`.
+Requires `wget2`.
 
 | Command | Description |
 |---|---|
 | `just update_application` | Checks for a newer release and bumps `version` and `hash` in `ktalk.nix` |
 | `just get_latest_appimage_version` | Prints the latest AppImage version |
-| `just pull_appimage <version>` | Downloads the AppImage for a given version and prints its sha256 hash |
+| `just pull_appimage <version> [arch]` | Downloads the AppImage for a given version and arch (`x86_64` or `arm64`, default `x86_64`) and prints its sha256 hash |
 | `just pull_latest_appimage` | Downloads the latest AppImage and prints its sha256 hash |
 | `just cleanup` | Removes downloaded AppImages from the repo root |
+| `just prek-install` | Installs the prek git hook |
+| `just prek-uninstall` | Removes the prek git hook |
+| `just prek-run` | Runs nixfmt, deadnix, and statix on all files |

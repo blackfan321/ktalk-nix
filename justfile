@@ -3,11 +3,15 @@ nix_file := "ktalk.nix"
 set quiet := true
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
-pull_appimage version:
-  wget2 --force-progress -O "ktalk-{{version}}.AppImage" \
-    "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}x86_64.AppImage" >&2
+[private]
+default:
+    @just --choose
 
-  nix hash file "ktalk-{{version}}.AppImage"
+pull_appimage version arch="x86_64":
+  wget2 --force-progress -O "ktalk-{{version}}-{{arch}}.AppImage" \
+    "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}{{arch}}.AppImage" >&2
+
+  nix hash file "ktalk-{{version}}-{{arch}}.AppImage"
 
 get_latest_appimage_version:
   { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/linux" -O /dev/null 2>&1 || true; } \
@@ -29,11 +33,13 @@ update_application:
     exit 0
   fi
 
-  HASH="$(just pull_appimage "$NEW_VERSION")"
+  HASH_X86="$(just pull_appimage "$NEW_VERSION" x86_64)"
+  HASH_ARM="$(just pull_appimage "$NEW_VERSION" arm64)"
 
   sed -i \
     -e 's/version = "[^"]*"/version = "'"$NEW_VERSION"'"/' \
-    -e 's|hash = "[^"]*"|hash = "'"$HASH"'"|' \
+    -e '/x86_64-linux = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_X86"'"|' \
+    -e '/aarch64-linux = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_ARM"'"|' \
     {{nix_file}}
 
   just cleanup
@@ -41,3 +47,15 @@ update_application:
 
 cleanup:
   rm -f -- *.AppImage
+
+[group('prek')]
+prek-install:
+  nix develop -c prek install
+
+[group('prek')]
+prek-uninstall:
+  nix develop -c prek uninstall
+
+[group('prek')]
+prek-run:
+  nix develop -c prek run --all-files

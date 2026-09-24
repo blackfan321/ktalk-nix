@@ -1,13 +1,6 @@
-{ inputs, ... }:
 {
   perSystem =
-    { config, system, ... }:
-    let
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-    in
+    { config, pkgs, ... }:
     {
       devShells.default = pkgs.mkShell {
         inherit (config.checks.prek) shellHook;

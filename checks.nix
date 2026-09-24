@@ -1,13 +1,8 @@
 { inputs, ... }:
 {
   perSystem =
-    { system, ... }:
+    { pkgs, system, ... }:
     let
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
       prek = inputs.git-hooks.lib.${system}.run {
         src = inputs.self;
         package = pkgs.prek;

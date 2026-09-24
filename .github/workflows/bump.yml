@@ -26,22 +26,52 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read current versions
+        id: before
+        run: |
+          linux="$(sed -n '/^  linuxSources = {/,/^  };/ s/^    version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
+          darwin="$(sed -n '/^  darwinSources = {/,/^  };/ s/^    version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
+          echo "linux=$linux" >> "$GITHUB_OUTPUT"
+          echo "darwin=$darwin" >> "$GITHUB_OUTPUT"
+
       - name: Check for a new release
         run: nix develop -c just ${{ matrix.recipe }}
 
-      - name: Read version
-        id: version
+      - name: Describe bump
+        id: bump
         run: |
-          version="$(sed -n 's/^  version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          linux="$(sed -n '/^  linuxSources = {/,/^  };/ s/^    version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
+          darwin="$(sed -n '/^  darwinSources = {/,/^  };/ s/^    version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
+          summary=""
+          branch_suffix=""
+          if [[ "$linux" != "${{ steps.before.outputs.linux }}" ]]; then
+            summary="linux ${{ steps.before.outputs.linux }} -> $linux"
+            branch_suffix="linux-$linux"
+          fi
+          if [[ "$darwin" != "${{ steps.before.outputs.darwin }}" ]]; then
+            if [[ -n "$summary" ]]; then
+              summary+=", darwin ${{ steps.before.outputs.darwin }} -> $darwin"
+              branch_suffix+="-darwin-$darwin"
+            else
+              summary="darwin ${{ steps.before.outputs.darwin }} -> $darwin"
+              branch_suffix="darwin-$darwin"
+            fi
+          fi
+          if [[ -z "$branch_suffix" ]]; then
+            summary="unchanged"
+            branch_suffix="unchanged"
+          fi
+          echo "summary=$summary" >> "$GITHUB_OUTPUT"
+          echo "branch_suffix=$branch_suffix" >> "$GITHUB_OUTPUT"
 
       - name: Open pull request
         uses: peter-evans/create-pull-request@v8
         with:
-          commit-message: "bump ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}"
-          title: "bump ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}"
+          commit-message: "bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}"
+          title: "bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}"
           body: |
-            Bumps ${{ matrix.program_name }} to ${{ steps.version.outputs.version }}.
-          branch: bump-${{ matrix.program_name }}-${{ steps.version.outputs.version }}
+            bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}
+          branch: bump-${{ matrix.program_name }}-${{ steps.bump.outputs.branch_suffix }}
           add-paths: ${{ matrix.package_file }}
           delete-branch: true

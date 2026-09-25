@@ -71,21 +71,21 @@ Set the default arch (`x86_64` or `arm64`) at the top of `justfile`.
 ### Linux
 | Command | Description |
 |---|---|
-| `just get_latest_appimage_version` | Prints the latest AppImage version |
-| `just pull_appimage <version> [arch]` | Downloads an AppImage for a given version; prints its sha256 |
-| `just pull_latest_appimage [arch]` | Downloads the latest AppImage; prints its sha256 |
+| `just get-latest-appimage-version` | Prints the latest AppImage version |
+| `just pull-appimage <version> [arch]` | Downloads an AppImage for a given version; prints its sha256 |
+| `just pull-latest-appimage [arch]` | Downloads the latest AppImage; prints its sha256 |
 
 ### macOS
 | Command | Description |
 |---|---|
-| `just get_latest_dmg_version` | Prints the latest disk image version |
-| `just pull_dmg <version>` | Downloads a disk image for a given version; prints its sha256 |
-| `just pull_latest_dmg` | Downloads the latest disk image; prints its sha256 |
+| `just get-latest-dmg-version` | Prints the latest disk image version |
+| `just pull-dmg <version>` | Downloads a disk image for a given version; prints its sha256 |
+| `just pull-latest-dmg` | Downloads the latest disk image; prints its sha256 |
 
 ### Maintenance
 | Command | Description |
 |---|---|
-| `just update_application` | Updates the package to the latest release for each platform |
+| `just update-application` | Updates the package to the latest release for each platform |
 | `just cleanup` | Removes downloaded application artifacts from the repo root |
 
 ### Pre-commit (prek)

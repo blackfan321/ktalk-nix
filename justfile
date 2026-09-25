@@ -11,41 +11,41 @@ default:
     @just --choose
 
 [group('linux')]
-pull_appimage version arch=default_arch:
+pull-appimage version arch=default_arch:
   wget2 --force-progress -O "ktalk-{{version}}-{{arch}}.AppImage" \
     "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}{{arch}}.AppImage" >&2
 
   nix hash file "ktalk-{{version}}-{{arch}}.AppImage"
 
 [group('linux')]
-get_latest_appimage_version:
+get-latest-appimage-version:
   { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/linux" -O /dev/null 2>&1 || true; } \
     | rg -o 'ktalk([0-9]+\.[0-9]+\.[0-9]+)x86_64\.AppImage' -r '$1' \
     | head -n1
 
 [group('linux')]
-pull_latest_appimage arch=default_arch:
-  just pull_appimage "$(just get_latest_appimage_version)" {{arch}}
+pull-latest-appimage arch=default_arch:
+  just pull-appimage "$(just get-latest-appimage-version)" {{arch}}
 
 [group('macos')]
-pull_dmg version:
+pull-dmg version:
   wget2 --force-progress -O "ktalk-{{version}}-mac.dmg" \
     "https://st.ktalk.host/ktalk-app/mac/ktalk.{{version}}-mac.dmg" >&2
 
   nix hash file "ktalk-{{version}}-mac.dmg"
 
 [group('macos')]
-get_latest_dmg_version:
+get-latest-dmg-version:
   { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/mac" -O /dev/null 2>&1 || true; } \
     | rg -o 'ktalk\.([0-9]+\.[0-9]+\.[0-9]+)-mac\.dmg' -r '$1' \
     | head -n1
 
 [group('macos')]
-pull_latest_dmg:
-  just pull_dmg "$(just get_latest_dmg_version)"
+pull-latest-dmg:
+  just pull-dmg "$(just get-latest-dmg-version)"
 
 [group('maintenance')]
-update_application:
+update-application:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -57,8 +57,8 @@ update_application:
 
   OLD_LINUX="$(read_version linuxSources)"
   OLD_DARWIN="$(read_version darwinSources)"
-  NEW_LINUX="$(just get_latest_appimage_version)"
-  NEW_DARWIN="$(just get_latest_dmg_version)"
+  NEW_LINUX="$(just get-latest-appimage-version)"
+  NEW_DARWIN="$(just get-latest-dmg-version)"
 
   LINUX_CHANGED=0
   DARWIN_CHANGED=0
@@ -72,12 +72,12 @@ update_application:
 
   summary=""
   if [[ "$LINUX_CHANGED" == 1 ]]; then
-    HASH_X86="$(just pull_appimage "$NEW_LINUX" x86_64)"
-    HASH_ARM="$(just pull_appimage "$NEW_LINUX" arm64)"
+    HASH_X86="$(just pull-appimage "$NEW_LINUX" x86_64)"
+    HASH_ARM="$(just pull-appimage "$NEW_LINUX" arm64)"
     summary="linux $OLD_LINUX -> $NEW_LINUX"
   fi
   if [[ "$DARWIN_CHANGED" == 1 ]]; then
-    HASH_DARWIN="$(just pull_dmg "$NEW_DARWIN")"
+    HASH_DARWIN="$(just pull-dmg "$NEW_DARWIN")"
     if [[ -n "$summary" ]]; then
       summary+=", "
     fi

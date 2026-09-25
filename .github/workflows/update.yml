@@ -1,4 +1,4 @@
-name: update_application
+name: update-application
 
 on:
   schedule:
@@ -19,7 +19,7 @@ jobs:
           - program_name: ktalk
             package_file: ktalk.nix
             readme_file: README.md
-            recipe: update_application
+            recipe: update-application
     steps:
       - uses: actions/checkout@v5
 

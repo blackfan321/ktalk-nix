@@ -1,5 +1,6 @@
 program_name := "ktalk"
 package_file := "ktalk.nix"
+readme_file := "README.md"
 default_arch := "x86_64"
 
 set quiet := true
@@ -9,32 +10,42 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 default:
     @just --choose
 
+[group('linux')]
 pull_appimage version arch=default_arch:
   wget2 --force-progress -O "ktalk-{{version}}-{{arch}}.AppImage" \
     "https://st.ktalk.host/ktalk-app/linux/ktalk{{version}}{{arch}}.AppImage" >&2
 
   nix hash file "ktalk-{{version}}-{{arch}}.AppImage"
 
+[group('linux')]
 get_latest_appimage_version:
   { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/linux" -O /dev/null 2>&1 || true; } \
     | rg -o 'ktalk([0-9]+\.[0-9]+\.[0-9]+)x86_64\.AppImage' -r '$1' \
     | head -n1
 
+[group('linux')]
 pull_latest_appimage arch=default_arch:
   just pull_appimage "$(just get_latest_appimage_version)" {{arch}}
 
+[group('macos')]
 pull_dmg version:
   wget2 --force-progress -O "ktalk-{{version}}-mac.dmg" \
     "https://st.ktalk.host/ktalk-app/mac/ktalk.{{version}}-mac.dmg" >&2
 
   nix hash file "ktalk-{{version}}-mac.dmg"
 
+[group('macos')]
 get_latest_dmg_version:
   { wget2 --server-response --max-redirect=0 "https://app.ktalk.ru/system/dist/download/mac" -O /dev/null 2>&1 || true; } \
     | rg -o 'ktalk\.([0-9]+\.[0-9]+\.[0-9]+)-mac\.dmg' -r '$1' \
     | head -n1
 
-bump_application:
+[group('macos')]
+pull_latest_dmg:
+  just pull_dmg "$(just get_latest_dmg_version)"
+
+[group('maintenance')]
+update_application:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -73,27 +84,32 @@ bump_application:
     summary+="darwin $OLD_DARWIN -> $NEW_DARWIN"
   fi
 
-  echo -e "\nBumping {{program_name}} ($summary)\n" >&2
+  echo -e "\nUpdating {{program_name}} ($summary)\n" >&2
 
   sed_args=()
+  readme_sed_args=()
   if [[ "$LINUX_CHANGED" == 1 ]]; then
     sed_args+=(
       -e '/^  linuxSources = {/,/^  };/ s/version = "[^"]*"/version = "'"$NEW_LINUX"'"/'
       -e '/x86_64-linux = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_X86"'"|'
       -e '/aarch64-linux = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_ARM"'"|'
     )
+    readme_sed_args+=(-e 's|shields.io/badge/linux-[^-]*-|shields.io/badge/linux-'"$NEW_LINUX"'-|')
   fi
   if [[ "$DARWIN_CHANGED" == 1 ]]; then
     sed_args+=(
       -e '/^  darwinSources = {/,/^  };/ s/version = "[^"]*"/version = "'"$NEW_DARWIN"'"/'
-      -e '/aarch64-darwin = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_DARWIN"'"/'
+      -e '/aarch64-darwin = {/,/^    };/ s|hash = "[^"]*"|hash = "'"$HASH_DARWIN"'"|'
     )
+    readme_sed_args+=(-e 's|shields.io/badge/macOS-[^-]*-|shields.io/badge/macOS-'"$NEW_DARWIN"'-|')
   fi
   sed -i "${sed_args[@]}" {{package_file}}
+  sed -i "${readme_sed_args[@]}" {{readme_file}}
 
   just cleanup
-  echo -e "{{program_name}} successfully bumped ($summary)" >&2
+  echo -e "{{program_name}} successfully updated ($summary)" >&2
 
+[group('maintenance')]
 cleanup:
   rm -f -- *.AppImage *.dmg
 

@@ -1,7 +1,11 @@
 # ktalk-nix
 
-Nix flake for [Kontur Talk](https://kontur.ru/talk/).
-Repackages the official Linux AppImage and macOS disk image.
+Nix flake for [Kontur.Talk](https://kontur.ru/talk/).
+Repackages the official Linux and macOS builds.
+
+[![linux](https://img.shields.io/badge/linux-3.7.1-informational)](./ktalk.nix)
+[![macOS](https://img.shields.io/badge/macOS-3.7.0-informational)](./ktalk.nix)
+[![CI](https://github.com/blackfan321/ktalk-nix/actions/workflows/update.yml/badge.svg)](https://github.com/blackfan321/ktalk-nix/actions/workflows/update.yml)
 
 ## Quick Start
 
@@ -37,7 +41,7 @@ nix profile install github:blackfan321/ktalk-nix
         environment.systemPackages = [
           ktalk.packages.${pkgs.stdenv.hostPlatform.system}.ktalk
         ];
-      }}];
+      }];
     };
   };
 }
@@ -62,17 +66,31 @@ nix profile install github:blackfan321/ktalk-nix
 
 ## Just
 
-Set the default arch (`x86_64` or `arm64`) at the top of `justfile`
+Set the default arch (`x86_64` or `arm64`) at the top of `justfile`.
 
+### Linux
 | Command | Description |
 |---|---|
-| `just bump_application` | Bumps Linux and macOS when a newer release is available. |
-| `just get_latest_appimage_version` | Prints the latest available AppImage version |
-| `just pull_appimage <version> [arch]` | Downloads the AppImage for a given version; prints its sha256 |
-| `just pull_latest_appimage [arch]` | Downloads the latest available AppImage; prints its sha256 |
-| `just get_latest_dmg_version` | Prints the latest available macOS version |
-| `just pull_dmg <version>` | Downloads the macOS disk image for a given version; prints its sha256 |
+| `just get_latest_appimage_version` | Prints the latest AppImage version |
+| `just pull_appimage <version> [arch]` | Downloads an AppImage for a given version; prints its sha256 |
+| `just pull_latest_appimage [arch]` | Downloads the latest AppImage; prints its sha256 |
+
+### macOS
+| Command | Description |
+|---|---|
+| `just get_latest_dmg_version` | Prints the latest disk image version |
+| `just pull_dmg <version>` | Downloads a disk image for a given version; prints its sha256 |
+| `just pull_latest_dmg` | Downloads the latest disk image; prints its sha256 |
+
+### Maintenance
+| Command | Description |
+|---|---|
+| `just update_application` | Updates the package to the latest release for each platform |
 | `just cleanup` | Removes downloaded application artifacts from the repo root |
+
+### Pre-commit (prek)
+| Command | Description |
+|---|---|
 | `just prek-install` | Installs the pre-commit hook |
 | `just prek-uninstall` | Removes the pre-commit hook |
 | `just prek-run` | Runs all checks against all repo files |

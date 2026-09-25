@@ -1,4 +1,4 @@
-name: bump_application
+name: update_application
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  bump:
+  update:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -18,7 +18,8 @@ jobs:
         include:
           - program_name: ktalk
             package_file: ktalk.nix
-            recipe: bump_application
+            readme_file: README.md
+            recipe: update_application
     steps:
       - uses: actions/checkout@v5
 
@@ -37,8 +38,8 @@ jobs:
       - name: Check for a new release
         run: nix develop -c just ${{ matrix.recipe }}
 
-      - name: Describe bump
-        id: bump
+      - name: Describe update
+        id: update
         run: |
           set -euo pipefail
           linux="$(sed -n '/^  linuxSources = {/,/^  };/ s/^    version = "\([^"]*\)".*/\1/p' "${{ matrix.package_file }}")"
@@ -68,10 +69,12 @@ jobs:
       - name: Open pull request
         uses: peter-evans/create-pull-request@v8
         with:
-          commit-message: "bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}"
-          title: "bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}"
+          commit-message: "update ${{ matrix.program_name }}: ${{ steps.update.outputs.summary }}"
+          title: "update ${{ matrix.program_name }}: ${{ steps.update.outputs.summary }}"
           body: |
-            bump ${{ matrix.program_name }}: ${{ steps.bump.outputs.summary }}
-          branch: bump-${{ matrix.program_name }}-${{ steps.bump.outputs.branch_suffix }}
-          add-paths: ${{ matrix.package_file }}
+            update ${{ matrix.program_name }}: ${{ steps.update.outputs.summary }}
+          branch: update-${{ matrix.program_name }}-${{ steps.update.outputs.branch_suffix }}
+          add-paths: |
+            ${{ matrix.package_file }}
+            ${{ matrix.readme_file }}
           delete-branch: true

@@ -3,8 +3,8 @@
 Nix flake for [Kontur.Talk](https://kontur.ru/talk/).
 Repackages the official Linux and macOS builds.
 
-[![linux](https://img.shields.io/badge/linux-3.7.1-informational)](./ktalk.nix)
-[![macOS](https://img.shields.io/badge/macOS-3.7.0-informational)](./ktalk.nix)
+[![linux](https://img.shields.io/badge/linux-3.8.0-informational)](./ktalk.nix)
+[![macOS](https://img.shields.io/badge/macOS-3.8.0-informational)](./ktalk.nix)
 [![CI](https://img.shields.io/github/actions/workflow/status/blackfan321/ktalk-nix/update.yml?label=CI)](https://github.com/blackfan321/ktalk-nix/actions/workflows/update.yml)
 
 ## Quick Start

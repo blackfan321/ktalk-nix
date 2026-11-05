@@ -10,21 +10,21 @@ let
   pname = "ktalk";
 
   linuxSources = {
-    version = "3.7.1";
+    version = "3.8.0";
     x86_64-linux = {
       suffix = "x86_64";
-      hash = "sha256-DSIQuo60Rhdf7IRdoExSpJh7KqtnkKe/Qi0QsbfraVM=";
+      hash = "sha256-0mJu1Jh8HWXsPVqQjUlEpAZTxTS8BDcm5ZCtUfhPNXA=";
     };
     aarch64-linux = {
       suffix = "arm64";
-      hash = "sha256-V5fsPFEGMrCU9/RWN+7Xpo3jRrtQt5XuzVi57BuCAVE=";
+      hash = "sha256-RezwsbmSoDGmcXJrpIuocaQ3psrSwQ78m7iYa6qBKjw=";
     };
   };
 
   darwinSources = {
-    version = "3.7.0";
+    version = "3.8.0";
     aarch64-darwin = {
-      hash = "sha256-q/nb/vqb6mryAfCoLxVlN88F3NZdP/14SZF3IOz2V2g=";
+      hash = "sha256-TfMXr/fxJctac+U4XFZOcFU6JVhrwF1s58hW+x5PEG4=";
     };
   };
 

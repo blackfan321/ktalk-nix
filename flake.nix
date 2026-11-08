@@ -8,35 +8,12 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    import-tree.url = "github:denful/import-tree?ref=v0.3.0";
   };
 
   outputs =
-    inputs@{ flake-parts, nixpkgs, ... }:
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        ./checks.nix
-        ./devshell.nix
-      ];
-
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
-
-      perSystem =
-        { system, ... }:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
-        in
-        {
-          packages = rec {
-            ktalk = pkgs.callPackage ./ktalk.nix { };
-            default = ktalk;
-          };
-        };
+      imports = [ (inputs.import-tree ./flake) ];
     };
 }

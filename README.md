@@ -3,13 +3,13 @@
 Nix flake for [Kontur.Talk](https://kontur.ru/talk/).
 Repackages the official Linux and macOS builds.
 
-[![linux](https://img.shields.io/badge/linux-3.7.1-informational)](./ktalk.nix)
-[![macOS](https://img.shields.io/badge/macOS-3.7.0-informational)](./ktalk.nix)
-[![CI](https://img.shields.io/github/actions/workflow/status/blackfan321/ktalk-nix/update.yml?label=CI)](https://github.com/blackfan321/ktalk-nix/actions/workflows/update.yml)
+[![linux](https://img.shields.io/badge/linux-3.8.0-informational)](./_sources/generated.nix)
+[![macOS](https://img.shields.io/badge/macOS-3.8.0-informational)](./_sources/generated.nix)
+[![CI](https://img.shields.io/github/actions/workflow/status/blackfan321/ktalk-nix/auto-updates.yml?label=CI)](https://github.com/blackfan321/ktalk-nix/actions/workflows/auto-updates.yml)
 
 ## Quick Start
 
-**Try it without installing:**
+**Try without installing:**
 ```bash
 nix run github:blackfan321/ktalk-nix
 ```
@@ -64,46 +64,15 @@ nix profile install github:blackfan321/ktalk-nix
 - `aarch64-linux`
 - `aarch64-darwin`
 
-## Just
-
-Set the default arch (`x86_64` or `arm64`) at the top of `justfile`.
-
-### Linux
-| Command | Description |
-|---|---|
-| `just get-latest-appimage-version` | Prints the latest AppImage version |
-| `just pull-appimage <version> [arch]` | Downloads an AppImage for a given version; prints its sha256 |
-| `just pull-latest-appimage [arch]` | Downloads the latest AppImage; prints its sha256 |
-
-### macOS
-| Command | Description |
-|---|---|
-| `just get-latest-dmg-version` | Prints the latest disk image version |
-| `just pull-dmg <version>` | Downloads a disk image for a given version; prints its sha256 |
-| `just pull-latest-dmg` | Downloads the latest disk image; prints its sha256 |
-
-### Maintenance
-| Command | Description |
-|---|---|
-| `just update-application` | Updates the package to the latest release for each platform |
-| `just cleanup` | Removes downloaded application artifacts from the repo root |
-
-### Pre-commit (prek)
-| Command | Description |
-|---|---|
-| `just prek-install` | Installs the pre-commit hook |
-| `just prek-uninstall` | Removes the pre-commit hook |
-| `just prek-run` | Runs all checks against all repo files |
-
 ## Devshell
 
-Allow [direnv](https://direnv.net/) to activate flake devshell:
+Allow [direnv](https://direnv.net/) to activate the flake devshell:
 
 ```bash
 direnv allow
 ```
 
-You also need [nix-direnv](https://github.com/nix-community/nix-direnv). The shell provides `just`, `rg`, `sed`, `wget2`, and the pre-commit packages.
+You'll also likely need [nix-direnv](https://github.com/nix-community/nix-direnv). The shell provides `just`, `jq`, `nvfetcher`, `sed`, and the pre-commit packages.
 
 Or enter the shell directly:
 
@@ -111,10 +80,67 @@ Or enter the shell directly:
 nix develop
 ```
 
+## Just
+
+[just](https://github.com/casey/just) is a command runner (like `make`, but simpler). Included in the devshell.
+
+| Command | Description |
+|---|---|
+| [`just update-application`](justfile#L34) | Runs `nvfetcher` and refreshes README version badges |
+| [`just update-sources`](justfile#L18) | Runs `nvfetcher` |
+| [`just update-badges`](justfile#L23) | Refreshes README version badges from [`_sources/generated.json`](_sources/generated.json) |
+
 ## Pre-commit
 
-TBD
+- [nixfmt](https://github.com/NixOS/nixfmt)
+- [deadnix](https://github.com/astro/deadnix)
+- [statix](https://github.com/nerdypepper/statix)
+
+Pre-commit hooks are installed automatically when you enter the devshell via [git-hooks.nix](https://github.com/cachix/git-hooks.nix) / [prek](https://github.com/j178/prek).
+
+## Upstream
+
+**Version source:**
+- Linux: [`latest-linux.yml`](https://st.ktalk.host/ktalk-app/linux/latest-linux.yml)
+- macOS: [`latest-mac.yml`](https://st.ktalk.host/ktalk-app/mac/latest-mac.yml)
+
+**Source artifacts:**
+- Linux x86_64: `https://st.ktalk.host/ktalk-app/linux/ktalk{version}x86_64.AppImage`
+- Linux aarch64: `https://st.ktalk.host/ktalk-app/linux/ktalk{version}arm64.AppImage`
+- macOS: `https://st.ktalk.host/ktalk-app/mac/ktalk.{version}-mac.dmg`
+
+The aarch64 AppImage is not listed in `latest-linux.yml`, but is published alongside the x86_64 build — its URL is derived from the tracked version.
+
+Versions and source hashes are managed with [nvfetcher](https://github.com/berberman/nvfetcher), which generates Nix expressions to [`_sources/generated.nix`](_sources/generated.nix). Source metadata is stored in [`_sources/generated.json`](_sources/generated.json).
 
 ## Automated Updates
 
-TBD
+### [`auto-updates.yml`](.github/workflows/auto-updates.yml)
+
+**Schedule:** daily at 06:00 UTC
+
+**What it does:**
+- Updates sources using `nvfetcher`
+- Refreshes README version badges
+- Opens a PR on `chore/update-ktalk` when versions change
+
+Example PR title / commit message:
+
+```
+chore: update Kontur.Talk (3.7.1 → 3.8.0)
+```
+
+PR body is the `nvfetcher` changelog.
+
+### [`release.yml`](.github/workflows/release.yml)
+
+**Trigger:** push to `main` when `_sources/generated.json` changes
+
+**What it does:**
+- Creates a GitHub Release `X.Y.Z`
+
+Example release:
+
+- **Tag:** `3.8.0`
+- **Name:** `3.8.0`
+- **Notes:** `Kontur.Talk 3.8.0`

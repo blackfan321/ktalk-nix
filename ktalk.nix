@@ -3,35 +3,27 @@
   stdenv,
   appimageTools,
   fetchurl,
+  fetchgit,
+  fetchFromGitHub,
+  dockerTools,
   ...
 }:
 
 let
-  pname = "ktalk";
-
-  linuxSources = {
-    version = "3.7.1";
-    x86_64-linux = {
-      suffix = "x86_64";
-      hash = "sha256-DSIQuo60Rhdf7IRdoExSpJh7KqtnkKe/Qi0QsbfraVM=";
-    };
-    aarch64-linux = {
-      suffix = "arm64";
-      hash = "sha256-V5fsPFEGMrCU9/RWN+7Xpo3jRrtQt5XuzVi57BuCAVE=";
-    };
-  };
-
-  darwinSources = {
-    version = "3.7.0";
-    aarch64-darwin = {
-      hash = "sha256-q/nb/vqb6mryAfCoLxVlN88F3NZdP/14SZF3IOz2V2g=";
-    };
-  };
+  inherit (import ./flake/systems.nix) systems;
 
   system = stdenv.hostPlatform.system;
 
-  platformNames =
-    sources: lib.filter (name: lib.isAttrs sources.${name}) (builtins.attrNames sources);
+  sources = import ./_sources/generated.nix {
+    inherit
+      fetchgit
+      fetchurl
+      fetchFromGitHub
+      dockerTools
+      ;
+  };
+
+  pname = "ktalk";
 
   meta = with lib; {
     description = "Kontur.Talk Desktop Client";
@@ -40,17 +32,16 @@ let
     downloadPage = "https://app.ktalk.ru/download/app";
     license = licenses.unfree;
     maintainers = with maintainers; [ blackfan321 ];
-    platforms = platformNames linuxSources ++ platformNames darwinSources;
+    platforms = systems;
   };
 in
-if stdenv.isLinux then
+if !(lib.elem system systems) then
+  throw "Unsupported system: ${system}"
+else if stdenv.hostPlatform.isLinux then
   let
-    source = linuxSources.${system} or (throw "Unsupported system: ${system}");
-    inherit (linuxSources) version;
-    src = fetchurl {
-      url = "https://st.ktalk.host/ktalk-app/linux/ktalk${version}${source.suffix}.AppImage";
-      inherit (source) hash;
-    };
+    source =
+      if stdenv.hostPlatform.isx86_64 then sources.ktalk-linux-x86_64 else sources.ktalk-linux-aarch64;
+    inherit (source) version src;
     appimageContents = appimageTools.extract {
       inherit pname src version;
     };
@@ -68,18 +59,17 @@ if stdenv.isLinux then
       inherit pname appimageContents;
     };
   }
-else if stdenv.isDarwin then
+else
   let
-    source = darwinSources.${system} or (throw "Unsupported system: ${system}");
-    inherit (darwinSources) version;
+    inherit (sources.ktalk-darwin) version src;
   in
   stdenv.mkDerivation {
-    inherit pname meta version;
-
-    src = fetchurl {
-      url = "https://st.ktalk.host/ktalk-app/mac/ktalk.${version}-mac.dmg";
-      inherit (source) hash;
-    };
+    inherit
+      pname
+      meta
+      version
+      src
+      ;
 
     # hdiutil lives outside the Nix sandbox.
     __noChroot = true;
@@ -110,5 +100,3 @@ else if stdenv.isDarwin then
       runHook postInstall
     '';
   }
-else
-  throw "Unsupported system: ${system}"

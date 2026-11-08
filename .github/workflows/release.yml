@@ -1,0 +1,31 @@
+name: Create GitHub release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - _sources/generated.json
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create release
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract version
+        id: version
+        run: |
+          version=$(jq -r '.["ktalk-linux-x86_64"].version' _sources/generated.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: Kontur.Talk ${{ steps.version.outputs.version }}
+          target_commitish: main

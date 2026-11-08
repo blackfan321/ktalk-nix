@@ -1,0 +1,62 @@
+name: Update Kontur.Talk
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-application:
+    name: Update application
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update sources and README
+        run: nix develop -c just update-application
+
+      - name: Detect nvfetcher changes
+        id: updates
+        run: |
+          if [[ -s .nvfetcher-changelog ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No updates available"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Prepare PR
+        if: steps.updates.outputs.changed == 'true'
+        id: pr
+        run: |
+          new_version=$(jq -r '.["ktalk-linux-x86_64"].version' _sources/generated.json)
+          old_version=$(git show HEAD:_sources/generated.json | jq -r '.["ktalk-linux-x86_64"].version')
+
+          {
+            echo "title=chore: update Kontur.Talk ($old_version → $new_version)"
+            echo "body<<EOF"
+            cat .nvfetcher-changelog
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create PR
+        if: steps.updates.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: ${{ steps.pr.outputs.title }}
+          title: ${{ steps.pr.outputs.title }}
+          body: ${{ steps.pr.outputs.body }}
+          branch: chore/update-ktalk
+          add-paths: |
+            _sources/generated.nix
+            _sources/generated.json
+            README.md
+          delete-branch: true

@@ -1,0 +1,14 @@
+[ktalk-linux-x86_64]
+src.webpage = "https://st.ktalk.host/ktalk-app/linux/latest-linux.yml"
+src.regex = "version: ([0-9]+\\.[0-9]+\\.[0-9]+)"
+fetch.url = "https://st.ktalk.host/ktalk-app/linux/ktalk$verx86_64.AppImage"
+
+[ktalk-linux-aarch64]
+src.webpage = "https://st.ktalk.host/ktalk-app/linux/latest-linux.yml"
+src.regex = "version: ([0-9]+\\.[0-9]+\\.[0-9]+)"
+fetch.url = "https://st.ktalk.host/ktalk-app/linux/ktalk$verarm64.AppImage"
+
+[ktalk-darwin]
+src.webpage = "https://st.ktalk.host/ktalk-app/mac/latest-mac.yml"
+src.regex = "version: ([0-9]+\\.[0-9]+\\.[0-9]+)"
+fetch.url = "https://st.ktalk.host/ktalk-app/mac/ktalk.$ver-mac.dmg"
